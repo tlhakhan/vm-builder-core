@@ -54,8 +54,8 @@ variable "vm_cloud_image_url" {
   description = "The URL to the cloud image suitable for the selected VM operating system"
 }
 
-variable "gpu_pci_bus" {
-  type        = number
-  default     = null
-  description = "The PCI bus number of the GPU to passthrough, if any"
+variable "pci_devices" {
+  type        = list(number)
+  default     = []
+  description = "List of PCI bus numbers of devices to passthrough (e.g. GPU and its audio function)"
 }

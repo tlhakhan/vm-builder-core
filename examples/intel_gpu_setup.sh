@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# for compute only use
 cat << 'EOF' > /etc/modprobe.d/xe.conf
 options xe force_probe=e20c
 options xe enable_dc=0
 options xe disable_display=true
+options snd_hda_intel probe_mask=0
 EOF
 
+# for apt cache
 mkdir -p /opt/local/apt-cache
 cat << 'EOF' > /etc/apt/sources.list.d/cache.list
 deb [trusted=yes] http://console-1.local:3142 noble/

@@ -83,7 +83,7 @@ vdh     253:112  0   64G  0 disk
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_gpu_pci_bus"></a> [gpu\_pci\_bus](#input\_gpu\_pci\_bus) | The PCI bus number of the GPU to passthrough, if any | `number` | `null` | no |
+| <a name="input_pci_devices"></a> [pci\_devices](#input\_pci\_devices) | List of PCI bus numbers of devices to passthrough (e.g. GPU and its audio function) | `list(number)` | `[]` | no |
 | <a name="input_vm_automation_user"></a> [vm\_automation\_user](#input\_vm\_automation\_user) | The username of the remote SSH user | `string` | n/a | yes |
 | <a name="input_vm_automation_user_pubkey"></a> [vm\_automation\_user\_pubkey](#input\_vm\_automation\_user\_pubkey) | The SSH public key of the remote SSH user | `string` | n/a | yes |
 | <a name="input_vm_cloud_image_url"></a> [vm\_cloud\_image\_url](#input\_vm\_cloud\_image\_url) | The URL to the cloud image suitable for the selected VM operating system | `string` | n/a | yes |

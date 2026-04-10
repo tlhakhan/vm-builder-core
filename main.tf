@@ -35,7 +35,7 @@ module "ubuntu-vm" {
   disk_sizes_gib  = var.vm_disk_sizes_gib
 
   # gpu settings
-  gpu_pci_bus = var.gpu_pci_bus
+  pci_devices = var.pci_devices
 
   launch_script = fileexists("${path.module}/launch_script.sh") ? file("${path.module}/launch_script.sh") : ""
 }

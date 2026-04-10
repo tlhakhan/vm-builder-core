@@ -39,8 +39,8 @@ A Terraform module that creates virtual machines on a libvirtd host.
 | <a name="input_console_user"></a> [console\_user](#input\_console\_user) | n/a | `string` | `"ubuntu"` | no |
 | <a name="input_cpu_count"></a> [cpu\_count](#input\_cpu\_count) | n/a | `number` | `2` | no |
 | <a name="input_disk_sizes_gib"></a> [disk\_sizes\_gib](#input\_disk\_sizes\_gib) | n/a | `list(number)` | <pre>[<br/>  8<br/>]</pre> | no |
-| <a name="input_gpu_pci_bus"></a> [gpu\_pci\_bus](#input\_gpu\_pci\_bus) | The PCI bus number of the GPU to passthrough, if any | `number` | `null` | no |
 | <a name="input_launch_script"></a> [launch\_script](#input\_launch\_script) | A shell script to run on the machine after cloud-init has finished | `string` | `""` | no |
 | <a name="input_memory_size_gib"></a> [memory\_size\_gib](#input\_memory\_size\_gib) | n/a | `number` | `2` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name of the virtual machine | `string` | n/a | yes |
+| <a name="input_pci_devices"></a> [pci\_devices](#input\_pci\_devices) | List of PCI bus numbers of devices to passthrough (e.g. GPU and its audio function) | `list(number)` | `[]` | no |
 <!-- END_TF_DOCS -->
