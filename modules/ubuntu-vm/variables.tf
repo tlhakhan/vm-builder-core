@@ -8,9 +8,14 @@ variable "memory_size_gib" {
   default = 2
 }
 
-variable "disk_sizes_gib" {
-  type    = list(number)
-  default = [8]
+variable "root_disk_size_gib" {
+  type    = number
+  default = 8
+}
+
+variable "data_disk_size_gib" {
+  type    = number
+  default = null
 }
 
 variable "cpu_count" {

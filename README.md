@@ -14,7 +14,11 @@ Create a `terraform.tfvars` and populate the needed variables.  See example belo
 vm_name            = "ubuntu"
 vm_cpu_count       = 6
 vm_memory_size_gib = 12
-vm_disk_sizes_gib  = [64, 64, 64, 64, 64, 64, 64, 64]
+vm_root_disk_size_gib = 64
+
+## optional: ZFS data disk — creates a zvol on the 'zvols' pool, attached as vdb
+## omit or set to null for no data disk
+vm_data_disk_size_gib = 200
 
 ## for direct console access for the new VMs
 vm_console_user     = "ubuntu"
@@ -30,6 +34,17 @@ pci_devices = [
   { domain = 0, bus = 1, slot = 0, function = 0 },
   { domain = 0, bus = 1, slot = 0, function = 1 },
 ]
+```
+
+### Disks
+
+The root disk (`vda`) is a qcow2 image stored in the VM's libvirt storage pool at `/data/datastore/<vm-name>`. It uses the cloud image as a backing store.
+
+The optional data disk (`vdb`) is a ZFS zvol provisioned on the `zvols` pool on the hypervisor. It is attached as a raw block device. The zvol name includes a random suffix to avoid collisions when a VM is recreated with the same name (e.g. `myvm-9fda0e1b26bedc1f`). On destroy the zvol is removed automatically.
+
+Each zvol is tagged with a ZFS user property for operator visibility:
+```
+zfs get "vm-builder-core:<hostname>:<vmname>" zvols/<zvol-name>
 ```
 
 ### PCI Passthrough
@@ -88,13 +103,7 @@ vda     253:0    0   64G  0 disk
 ├─vda14 253:14   0    4M  0 part
 ├─vda15 253:15   0  106M  0 part /boot/efi
 └─vda16 259:0    0  913M  0 part /boot
-vdb     253:16   0   64G  0 disk
-vdc     253:32   0   64G  0 disk
-vdd     253:48   0   64G  0 disk
-vde     253:64   0   64G  0 disk
-vdf     253:80   0   64G  0 disk
-vdg     253:96   0   64G  0 disk
-vdh     253:112  0   64G  0 disk
+vdb     253:16   0  200G  0 disk   ← ZFS zvol (raw block device)
 
 ```
 
@@ -122,7 +131,8 @@ vdh     253:112  0   64G  0 disk
 | <a name="input_vm_console_password"></a> [vm\_console\_password](#input\_vm\_console\_password) | The password of the console user | `string` | n/a | yes |
 | <a name="input_vm_console_user"></a> [vm\_console\_user](#input\_vm\_console\_user) | The username of the console user | `string` | n/a | yes |
 | <a name="input_vm_cpu_count"></a> [vm\_cpu\_count](#input\_vm\_cpu\_count) | The CPU count of the VM(s) | `number` | `2` | no |
-| <a name="input_vm_disk_sizes_gib"></a> [vm\_disk\_sizes\_gib](#input\_vm\_disk\_sizes\_gib) | The disk size of the VM(s) in GiB, the first element is the root disk size, followed by data disks if any, with max of 8 disks. | `list(number)` | <pre>[<br/>  48<br/>]</pre> | no |
+| <a name="input_vm_root_disk_size_gib"></a> [vm\_root\_disk\_size\_gib](#input\_vm\_root\_disk\_size\_gib) | Root disk size in GiB. Stored as qcow2 in the VM's libvirt storage pool. | `number` | `48` | no |
+| <a name="input_vm_data_disk_size_gib"></a> [vm\_data\_disk\_size\_gib](#input\_vm\_data\_disk\_size\_gib) | Optional data disk size in GiB. Creates a ZFS zvol on the 'zvols' pool. Omit or set null for no data disk. | `number` | `null` | no |
 | <a name="input_vm_memory_size_gib"></a> [vm\_memory\_size\_gib](#input\_vm\_memory\_size\_gib) | The memory size of the VM(s) in GiB | `number` | `4` | no |
 | <a name="input_vm_name"></a> [vm\_name](#input\_vm\_name) | The name to give to the VM(s) | `string` | `"vm"` | no |
 <!-- END_TF_DOCS -->

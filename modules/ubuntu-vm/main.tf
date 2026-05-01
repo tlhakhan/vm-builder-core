@@ -5,6 +5,10 @@ terraform {
       source  = "dmacvicar/libvirt"
       version = "= 0.9.7"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -69,9 +73,13 @@ resource "libvirt_volume" "cloudinit_disk" {
   }
 }
 
+resource "random_id" "zvol_id" {
+  byte_length = 8
+}
+
 resource "libvirt_volume" "root_disk" {
   name     = "${var.name}-root-disk"
-  capacity = var.disk_sizes_gib[0] * 1024 * 1024 * 1024 // size must be in bytes
+  capacity = var.root_disk_size_gib * 1024 * 1024 * 1024 // size must be in bytes
   pool     = libvirt_pool.datastore.name
   target = {
     format = {
@@ -86,39 +94,52 @@ resource "libvirt_volume" "root_disk" {
   }
 }
 
-resource "libvirt_volume" "data_disks" {
-  // grab a slice from the list disk_sizes_gib, ignore the first element because its the root disk size
-  for_each = { for i, v in slice(var.disk_sizes_gib, 1, length(var.disk_sizes_gib)) : i => v }
-  name     = "${var.name}-data-disk-${each.key}"
-  capacity = each.value * 1024 * 1024 * 1024 // size must be in bytes
-  pool     = libvirt_pool.datastore.name
-  target = {
-    format = {
-      type = "qcow2"
-    }
-  }
-}
-
 locals {
-  dev_lookup = ["vdb", "vdc", "vdd", "vde", "vdf", "vdg", "vdh"] // max of 7 additional disks
-  additional_disks = [for i, _ in libvirt_volume.data_disks : {
+  zvol_name = "${var.name}-${random_id.zvol_id.hex}"
+  additional_disks = var.data_disk_size_gib != null ? [{
     source = {
-      volume = {
-        pool   = libvirt_volume.data_disks[i].pool
-        volume = libvirt_volume.data_disks[i].name
+      block = {
+        dev = "/dev/zvol/zvols/${local.zvol_name}"
       }
     }
     driver = {
-      type = "qcow2"
+      type = "raw"
     }
     target = {
-      dev = local.dev_lookup[i] // used lookup table to convert index into dev names
+      dev = "vdb"
       bus = "virtio"
     }
-  }]
+  }] : []
+}
+
+resource "null_resource" "zvol" {
+  count = var.data_disk_size_gib != null ? 1 : 0
+
+  triggers = {
+    zvol_name = local.zvol_name
+    vm_name   = var.name
+    size_gib  = var.data_disk_size_gib
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      zfs create -V ${self.triggers.size_gib}G zvols/${self.triggers.zvol_name}
+      zfs set "vm-builder-core:$(hostname):${self.triggers.vm_name}=true" zvols/${self.triggers.zvol_name}
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      zfs set "vm-builder-core:$(hostname):${self.triggers.vm_name}=pending_removal" zvols/${self.triggers.zvol_name} || true
+      zfs destroy zvols/${self.triggers.zvol_name}
+    EOT
+  }
 }
 
 resource "libvirt_domain" "machine" {
+  depends_on = [null_resource.zvol]
+
   name        = var.name
   autostart   = var.autostart
   memory      = var.memory_size_gib * 1024 // memory must be in mib

@@ -29,9 +29,10 @@ module "ubuntu-vm" {
   console_password = var.vm_console_password
 
   # vm settings
-  cpu_count       = var.vm_cpu_count
-  memory_size_gib = var.vm_memory_size_gib
-  disk_sizes_gib  = var.vm_disk_sizes_gib
+  cpu_count          = var.vm_cpu_count
+  memory_size_gib    = var.vm_memory_size_gib
+  root_disk_size_gib = var.vm_root_disk_size_gib
+  data_disk_size_gib = var.vm_data_disk_size_gib
 
   # gpu settings
   pci_devices = var.pci_devices

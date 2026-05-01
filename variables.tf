@@ -16,10 +16,16 @@ variable "vm_memory_size_gib" {
   description = "The memory size of the VM(s) in GiB"
 }
 
-variable "vm_disk_sizes_gib" {
-  type        = list(number)
-  default     = [48]
-  description = "The disk size of the VM(s) in GiB, the first element is the root disk size, followed by data disks if any, with max of 8 disks."
+variable "vm_root_disk_size_gib" {
+  type        = number
+  default     = 48
+  description = "Root disk size in GiB. Stored as qcow2 in the VM's libvirt storage pool."
+}
+
+variable "vm_data_disk_size_gib" {
+  type        = number
+  default     = null
+  description = "Optional data disk size in GiB. Creates a ZFS zvol on the 'zvols' pool. Omit or set null for no data disk."
 }
 
 variable "vm_console_user" {
